@@ -1,6 +1,5 @@
 // redux/actions.js
 import axios from 'axios';
-import thunk from 'redux-thunk';
 
 export const fetchTransactions = () => dispatch => {
     axios.get("https://acb-api.algoritmika.org/api/transaction")
@@ -43,7 +42,7 @@ export const editTransaction = (id, transaction) => dispatch => {
 };
 
 export const deleteTransaction = (id) => dispatch => {
-    axios.delete(`https://acb-api.algoritmika.org/api/transaction/${id}`)
+    return axios.delete(`https://acb-api.algoritmika.org/api/transaction/${id}`)
         .then(() => {
             dispatch({
                 type: 'DELETE_TRANSACTION',
@@ -54,6 +53,7 @@ export const deleteTransaction = (id) => dispatch => {
             console.log(err);
         });
 };
+
 
 export const setEditId = (id) => {
     return {
