@@ -1,72 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import TransactionList from './TransactionList';
 import TransactionForm from './TransactionForm';
+import { fetchTransactions, addTransaction, editTransaction, deleteTransaction, setEditId, resetEditId, toggleAddForm, toggleEditForm } from './redux/actions';
 import './App.css';
 
-function App() {
-    const [transactions, setTransactions] = useState([]);
-    const [transaction, setTransaction] = useState({ from: '', to: '', amount: '' });
-    const [editId, setEditId] = useState(null);
-    const [showAddForm, setShowAddForm] = useState(false);
-    const [showEditForm, setShowEditForm] = useState(false);
+const App = () => {
+    const dispatch = useDispatch();
+
+    const transactions = useSelector(state => state.transactions);
+    const transaction = useSelector(state => state.transaction);
+    const editId = useSelector(state => state.editId);
+    const showAddForm = useSelector(state => state.showAddForm);
+    const showEditForm = useSelector(state => state.showEditForm);
 
     useEffect(() => {
-        fetchTransactions();
-    }, []);
-
-    const fetchTransactions = () => {
-        fetch("https://acb-api.algoritmika.org/api/transaction")
-            .then(res => res.json())
-            .then(data => setTransactions(data));
-    }
+        dispatch(fetchTransactions());
+    }, [dispatch]);
 
     const handleChange = (e) => {
-        setTransaction({ ...transaction, [e.target.name]: e.target.value });
-    }
+        dispatch({
+            type: 'SET_TRANSACTION',
+            payload: { field: e.target.name, value: e.target.value }
+        });
+    };
 
     const handleAddTransaction = () => {
-        fetch(`https://acb-api.algoritmika.org/api/transaction`, {
-            method: 'POST',
-            headers: {
-                'Content-type': 'application/json'
-            },
-            body: JSON.stringify(transaction)
-        }).then(() => {
-            fetchTransactions();
-            setTransaction({ from: '', to: '', amount: '' });
-            setShowAddForm(false);
-        });
-    }
+        dispatch(addTransaction(transaction))
+            .then(() => {
+                dispatch(resetEditId());
+                dispatch(toggleAddForm(false));
+                dispatch({ type: 'RESET_TRANSACTION' }); 
+            })
+            .then(() => dispatch(fetchTransactions())); 
+    };
+
 
     const handleEditTransaction = () => {
-        fetch(`https://acb-api.algoritmika.org/api/transaction/${editId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-type': 'application/json'
-            },
-            body: JSON.stringify(transaction)
-        }).then(() => {
-            fetchTransactions();
-            setEditId(null);
-            setTransaction({ from: '', to: '', amount: '' });
-            setShowEditForm(false);
-        });
-    }
+        dispatch(editTransaction(editId, transaction))
+            .then(() => dispatch(fetchTransactions())) 
+            .then(() => dispatch(toggleEditForm(false))); 
+    };
 
     const handleEdit = (transaction) => {
-        setEditId(transaction.id);
-        setTransaction({ from: transaction.from, to: transaction.to, amount: transaction.amount });
-        setShowEditForm(true);
-        setShowAddForm(false);
-    }
+        dispatch(setEditId(transaction.id));
+        dispatch({
+            type: 'SET_TRANSACTION',
+            payload: { field: 'from', value: transaction.from }
+        });
+        dispatch({
+            type: 'SET_TRANSACTION',
+            payload: { field: 'to', value: transaction.to }
+        });
+        dispatch({
+            type: 'SET_TRANSACTION',
+            payload: { field: 'amount', value: transaction.amount }
+        });
+        dispatch(toggleEditForm(true));
+    };
 
     const handleDelete = (id) => {
-        fetch(`https://acb-api.algoritmika.org/api/transaction/${id}`, {
-            method: "DELETE"
-        }).then(() => {
-            fetchTransactions();
-        });
-    }
+        dispatch(deleteTransaction(id))
+            .then(() => dispatch(fetchTransactions())); 
+    };
 
     return (
         <div className="container">
@@ -75,18 +71,18 @@ function App() {
             </div>
             <TransactionList transactions={transactions} handleEdit={handleEdit} handleDelete={handleDelete} />
             <div className="addBtn">
-                <button onClick={() => { setShowAddForm(!showAddForm); setShowEditForm(false); setTransaction({ from: '', to: '', amount: '' }); }}>Add +</button>
+                <button onClick={() => { dispatch(toggleAddForm(true)); dispatch(resetEditId()); }}>Add +</button>
             </div>
             {(showAddForm || showEditForm) &&
                 <TransactionForm
                     transaction={transaction}
-                    handleSubmit={showEditForm ? handleEditTransaction : handleAddTransaction}
                     handleChange={handleChange}
+                    handleSubmit={showEditForm ? handleEditTransaction : handleAddTransaction}
                     buttonText={showEditForm ? 'Save' : '+'}
                 />
             }
         </div>
     );
-}
+};
 
 export default App;

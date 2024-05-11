@@ -11,6 +11,6 @@ const TransactionList = ({ transactions, handleEdit, handleDelete }) => {
             </ul>
         </div>
     );
-}
+};
 
 export default TransactionList;

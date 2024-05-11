@@ -15,6 +15,6 @@ const TransactionForm = ({ transaction, handleSubmit, handleChange, buttonText }
             <div className="plus" onClick={handleSubmit}>{buttonText}</div>
         </div>
     );
-}
+};
 
 export default TransactionForm;
