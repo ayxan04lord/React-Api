@@ -30,7 +30,7 @@ const App = () => {
             .then(() => {
                 dispatch(resetEditId());
                 dispatch(toggleAddForm(false));
-                dispatch({ type: 'RESET_TRANSACTION' }); 
+                dispatch({ type: 'ADD_TRANSACTION' }); 
             })
             .then(() => dispatch(fetchTransactions())); 
     };
